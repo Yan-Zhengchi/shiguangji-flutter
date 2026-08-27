@@ -1,0 +1,62 @@
+# ═══════════════════════════════════════
+#  Java / Spring Boot 后端
+# ═══════════════════════════════════════
+target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# ═══════════════════════════════════════
+#  Flutter 前端
+# ═══════════════════════════════════════
+shiguangji_app/.dart_tool/
+shiguangji_app/build/
+shiguangji_app/.flutter-plugins
+shiguangji_app/.flutter-plugins-dependencies
+shiguangji_app/pubspec.lock
+shiguangji_app/.packages
+shiguangji_app/android/.gradle/
+shiguangji_app/android/app/build/
+shiguangji_app/android/local.properties
+shiguangji_app/ios/Pods/
+shiguangji_app/ios/.symlinks/
+shiguangji_app/.metadata
+
+# ═══════════════════════════════════════
+#  IDE
+# ═══════════════════════════════════════
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+# ═══════════════════════════════════════
+#  Docker 部署产物
+# ═══════════════════════════════════════
+deploy/data/
+deploy/.env
+
+# ═══════════════════════════════════════
+#  OS
+# ═══════════════════════════════════════
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ═══════════════════════════════════════
+#  其他
+# ═══════════════════════════════════════
+*.log
+*.tmp
+.cache/
+.workbuddy/
+.claude/
+__pycache__/
+*.pyc
+.smoke_state.json

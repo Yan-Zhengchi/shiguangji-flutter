@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shiguangji.mapper.RecipeMapper">
+
+    <sql id="cardColumns">
+        r.id, r.title, r.cover_url, u.nickname AS author_name, r.favorite_count
+    </sql>
+
+    <sql id="cardFrom">
+        FROM recipe r
+        JOIN `user` u ON u.id = r.user_id AND u.deleted = 0
+        WHERE r.deleted = 0 AND r.status = 1
+    </sql>
+
+    <select id="selectHomeCards" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        <include refid="cardFrom"/>
+        <if test="categoryId != null">
+            AND r.category_id = #{categoryId}
+        </if>
+        ORDER BY (r.favorite_count * 2 + r.view_count) DESC, r.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectHotCards" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        <include refid="cardFrom"/>
+        ORDER BY (r.favorite_count * 2 + r.view_count) DESC, r.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectUserCards" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        FROM recipe r
+        JOIN `user` u ON u.id = r.user_id AND u.deleted = 0
+        WHERE r.deleted = 0 AND r.user_id = #{userId}
+        ORDER BY r.created_at DESC, r.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="searchByFulltext" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        <include refid="cardFrom"/>
+        AND MATCH(r.title, r.description) AGAINST (#{keyword} IN NATURAL LANGUAGE MODE)
+        ORDER BY r.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="searchByLike" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        <include refid="cardFrom"/>
+        AND r.title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY r.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <update id="batchFlushCounters">
+        <foreach collection="items" item="i" separator=";">
+            UPDATE recipe
+            SET favorite_count = favorite_count + #{i.favoriteDelta},
+                view_count     = view_count + #{i.viewDelta}
+            WHERE id = #{i.recipeId}
+        </foreach>
+    </update>
+
+    <select id="selectCardsByIds" resultType="com.shiguangji.dto.RecipeCardVO">
+        SELECT <include refid="cardColumns"/>
+        <include refid="cardFrom"/>
+        AND r.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </select>
+</mapper>

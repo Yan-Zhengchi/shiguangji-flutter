@@ -1,0 +1,8 @@
+# 构建上下文排除项：避免无关文件进镜像构建缓存
+.workbuddy
+deploy/data
+deploy/.env
+*.md
+*.html
+logs
+uploads

@@ -1,0 +1,92 @@
+# ═══════════════════════════════════════════════════
+#  食光记 Docker Compose - NAS 一键部署
+#  用法：修改下方 ★ 标记的配置项，然后执行
+#    docker compose up -d
+# ═══════════════════════════════════════════════════
+
+name: shiguangji
+
+services:
+
+  # ─────────── 应用 ───────────
+  app:
+    image: xixiapt/shiguangji:latest          # ★ Docker Hub 镜像
+    container_name: shiguangji-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"                            # ★ 对外端口（左边改）
+    environment:
+      TZ: Asia/Shanghai
+      # ── MySQL 连接（application.yml 用 ${MYSQL_HOST} 拼 URL）──
+      MYSQL_HOST: mysql                     # 指向同网络的 mysql 容器
+      MYSQL_USER: shiguangji
+      MYSQL_PASSWORD: "94dadbefc334144c20b1807cc822ab9d"  # ★ 数据库密码
+      # ── Redis 连接 ──
+      REDIS_HOST: redis
+      REDIS_PASSWORD: "371a1b3cca1ce7c5dd53dc004f4feab9"  # ★ Redis 密码
+      # ── JWT 密钥（base64）──
+      JWT_SECRET: "bEnyK0la/hWmnPCvQuvAy9XYzVmFo8nqTi3Lwf33zuIJGbmzfHnT0dQpEjY11j/5"  # ★ JWT 密钥
+    volumes:
+      - ./data/uploads:/app/uploads   # ★ 用户上传文件存储
+      - ./data/logs:/app/logs         # ★ 应用日志存储
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [sgj-net]
+
+  # ─────────── MySQL ───────────
+  mysql:
+    image: xixiapt/shiguangji-mysql:latest
+    container_name: shiguangji-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "94dadbefc334144c20b1807cc822ab9d"  # ★ root 密码（与上方一致）
+      MYSQL_DATABASE: shiguangji
+      MYSQL_USER: shiguangji
+      MYSQL_PASSWORD: "94dadbefc334144c20b1807cc822ab9d"      # ★ 用户密码
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql                        # ★ MySQL 数据持久化（Docker 命名卷）
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --default-time-zone=+08:00
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks: [sgj-net]
+
+  # ─────────── Redis ───────────
+  redis:
+    image: redis:7-alpine
+    container_name: shiguangji-redis
+    restart: unless-stopped
+    # ★ Redis 密码：必须与上方 REDIS_PASSWORD 一致
+    command: >
+      redis-server
+      --requirepass 371a1b3cca1ce7c5dd53dc004f4feab9
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - ./data/redis:/data                                # ★ Redis 数据持久化
+    healthcheck:
+      # ★ 密码必须与上方 REDIS_PASSWORD 一致
+      test: ["CMD-SHELL", "redis-cli -a 371a1b3cca1ce7c5dd53dc004f4feab9 ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [sgj-net]
+
+networks:
+  sgj-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
