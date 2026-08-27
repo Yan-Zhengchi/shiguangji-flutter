@@ -53,6 +53,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     child: GlassCard(
                       radius: 24,
                       padding: const EdgeInsets.symmetric(horizontal: 14),
+                      blur: false,
                       child: TextField(
                         controller: _ctrl,
                         focusNode: _focus,

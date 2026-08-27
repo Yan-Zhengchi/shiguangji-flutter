@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../data/providers.dart';
+import 'widgets/category_nav_row.dart';
 import 'widgets/recipe_card_tile.dart';
 
 class CategoryPage extends ConsumerWidget {
@@ -18,49 +19,37 @@ class CategoryPage extends ConsumerWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // 顶栏
+            // 顶栏：返回箭头独占一行
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => context.go('/'),
                     child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.arrow_back, color: AppColors.text1)),
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: SizedBox(
-                      height: 36,
-                      child: cats.when(
-                        data: (list) => ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: list.map((c) {
-                            final active = c.id == categoryId;
-                            return GestureDetector(
-                              onTap: () => context.pushReplacement('/category/${c.id}'),
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: active ? AppColors.primary : AppColors.glassFillWeak,
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: active ? AppColors.primary : AppColors.glassStroke),
-                                ),
-                                child: Text(c.name,
-                                    style: TextStyle(fontSize: 13,
-                                        color: active ? Colors.white : AppColors.text3,
-                                        fontWeight: active ? FontWeight.w600 : FontWeight.w400)),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
                 ],
+              ),
+            ),
+            // 分类入口：等分铺满屏宽，当前分类高亮
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: cats.when(
+                data: (list) => Row(
+                  children: [
+                    for (final c in list)
+                      Expanded(
+                        child: CategoryIconTile(
+                          name: c.name,
+                          asset: categoryAssetOf(c.name),
+                          selected: c.id == categoryId,
+                          onTap: () => context.pushReplacement('/category/${c.id}'),
+                        ),
+                      ),
+                  ],
+                ),
+                loading: () => const SizedBox(height: 84),
+                error: (_, __) => const SizedBox.shrink(),
               ),
             ),
             Expanded(

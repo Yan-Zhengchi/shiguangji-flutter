@@ -24,6 +24,7 @@ class ProfilePage extends ConsumerWidget {
               // 资料玻璃卡
               GlassCard(
                 padding: const EdgeInsets.all(18),
+                blur: false,
                 child: Row(children: [
                   CircleAvatar(radius: 30, backgroundColor: AppColors.glassFillStrong,
                     child: Text((p.nickname.isNotEmpty ? p.nickname : '?')[0],
@@ -46,6 +47,7 @@ class ProfilePage extends ConsumerWidget {
               // 统计行
               GlassCard(
                 padding: const EdgeInsets.symmetric(vertical: 14),
+                blur: false,
                 child: Row(children: [
                   _stat(p.stats.recipeCount, '菜谱', () => {}),
                   _divider(),
@@ -91,6 +93,7 @@ class ProfilePage extends ConsumerWidget {
                     ? const Text('还没有家庭', style: TextStyle(color: AppColors.text2, fontSize: 12))
                     : Column(children: list.map((f) => GlassCard(
                         padding: const EdgeInsets.all(12),
+                        blur: false,
                         child: Row(children: [
                           const Icon(Icons.family_restroom, color: AppColors.orange, size: 20),
                           const SizedBox(width: 8),

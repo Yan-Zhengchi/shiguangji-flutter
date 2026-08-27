@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
@@ -7,6 +8,11 @@ import 'core/network/token_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 亮色主题：状态栏深色图标、透明底
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+  ));
   await TokenStore.instance.init();   // 启动时加载持久化的 Token + 服务器地址
   ApiClient.init();                   // 按已存的服务器地址构造 dio
   ApiClient.onAuthFailed = () => appRouter.go('/login');   // 注入 401 失效跳转

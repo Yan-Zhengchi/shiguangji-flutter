@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../network/api_client.dart';
 import '../network/token_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_card.dart';
@@ -68,9 +67,19 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = GoRouterState.of(context).matchedLocation;
+    final mq = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: child,
+      // body 延伸到屏幕底（含 TabBar 区域）：页面渐变填满整屏，
+      // 玻璃胶囊的 backdrop-blur 才有内容可透，也不会露出黑边
+      extendBody: true,
+      // 给内容多预留一个胶囊 TabBar 的高度，滚动到底时不被遮挡
+      body: MediaQuery(
+        data: mq.copyWith(
+          padding: mq.padding.copyWith(bottom: mq.padding.bottom + 84),
+        ),
+        child: child,
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -78,6 +87,7 @@ class MainShell extends StatelessWidget {
           child: GlassCard(
             radius: 36,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            blur: false,   // 底下是持续动画的极光晕，开真·模糊会每帧重算，得不偿失
             child: Row(
               children: _tabs.map((t) {
                 final active = loc == t.path || (t.path != '/' && loc.startsWith(t.path));

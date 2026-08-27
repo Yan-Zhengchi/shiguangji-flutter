@@ -180,7 +180,7 @@ class _EditPageState extends ConsumerState<EditPage> {
                               child: Image.network(ApiClient.assetUrl(_coverUrl!),
                                   fit: BoxFit.cover, width: double.infinity, height: 120,
                                   errorBuilder: (_, __, ___) => const ColoredBox(
-                                      color: Color(0xFF1B3358), child: SizedBox.expand()))),
+                                      color: Color(0xFFE3EAF6), child: SizedBox.expand()))),
                     ),
                   )),
                   const SizedBox(height: 12),
@@ -367,6 +367,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        blur: false,   // 深色纯底上的表单卡，开真·毛玻璃只有帧率代价没有视觉收益
         child: child,
       );
 }

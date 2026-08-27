@@ -93,6 +93,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 child: GlassCard(
                   radius: 28,
                   padding: const EdgeInsets.all(24),
+                  blur: false,
                   child: Column(
                     children: const [
                       Icon(Icons.restaurant_menu_rounded, size: 44, color: AppColors.orange),

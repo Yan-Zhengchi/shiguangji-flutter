@@ -20,6 +20,7 @@ class RecipeCardTile extends StatelessWidget {
       child: GlassCard(
         radius: 18,
         padding: const EdgeInsets.all(6),
+        blur: false,   // 瀑布流滚动时每帧重算模糊是掉帧大户，纯渐变底无需真·毛玻璃
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -44,6 +44,7 @@ class _FamiliesPageState extends ConsumerState<FamiliesPage> {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: GlassCard(
                               padding: const EdgeInsets.all(14),
+                              blur: false,
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Row(children: [
                                   const Icon(Icons.family_restroom, color: AppColors.orange, size: 20),

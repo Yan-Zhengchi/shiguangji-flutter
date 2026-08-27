@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../data/providers.dart';
-import '../../shared/models.dart';
+import 'widgets/category_nav_row.dart';
 import 'widgets/recipe_card_tile.dart';
 
 class HomePage extends ConsumerWidget {
@@ -35,12 +35,13 @@ class HomePage extends ConsumerWidget {
             ),
             // 搜索框（点击跳搜索页）
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
               child: GestureDetector(
                 onTap: () => context.push('/search'),
                 child: GlassCard(
                   radius: 28,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  blur: false,
                   child: Row(
                     children: const [
                       Icon(Icons.search, size: 18, color: AppColors.text2),
@@ -51,21 +52,11 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
             ),
-            // 分类 chips
-            SizedBox(
-              height: 44,
-              child: cats.when(
-                data: (list) => ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  children: list.map((c) => _CategoryChip(
-                    name: c.name,
-                    onTap: () => context.push('/category/${c.id}'),
-                  )).toList(),
-                ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
+            // 分类入口（玻璃图标 + 文字）
+            cats.when(
+              data: (list) => CategoryNavRow(categories: list),
+              loading: () => const SizedBox(height: 98),
+              error: (_, __) => const SizedBox.shrink(),
             ),
             // 瀑布流
             Expanded(
@@ -107,22 +98,3 @@ class HomePage extends ConsumerWidget {
       );
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.name, required this.onTap});
-  final String name;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.glassFillWeak,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.glassStroke),
-          ),
-          child: Text(name, style: const TextStyle(fontSize: 13, color: AppColors.text3)),
-        ),
-      );
-}

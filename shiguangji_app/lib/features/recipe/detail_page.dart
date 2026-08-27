@@ -214,7 +214,7 @@ class CachedImage extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
-      placeholder: (_, __) => const ColoredBox(color: Color(0xFF1B3358), child: SizedBox.expand()),
+      placeholder: (_, __) => const ColoredBox(color: Color(0xFFE3EAF6), child: SizedBox.expand()),
       errorWidget: (_, __, ___) => const PhPlaceholder(emoji: '🍽️', size: 40),
     );
   }
@@ -226,7 +226,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: GlassCard(padding: const EdgeInsets.all(14), child: child),
+        child: GlassCard(padding: const EdgeInsets.all(14), blur: false, child: child),
       );
 }
 
