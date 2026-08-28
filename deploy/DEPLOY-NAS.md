@@ -102,6 +102,22 @@ curl http://localhost:8080/actuator/health
 └── logs/                # 应用日志
 ```
 
+## 常见问题
+
+### 上传图片报「文件保存失败」(code 50000)
+
+应用容器以**非 root 用户（UID/GID 999）**运行，宿主机的 `data/uploads`、`data/logs`
+目录必须归它所有，否则写文件直接 Permission denied。修复：
+
+```bash
+cd /volume1/docker/shiguangji
+chown -R 999:999 data/uploads data/logs
+# 验证：容器内能写探针文件即 OK
+docker compose exec app sh -c 'touch /app/uploads/.probe && echo WRITE_OK && rm /app/uploads/.probe'
+```
+
+若仍失败，检查磁盘是否写满：`df -h /volume1`
+
 ## 数据库变更（Flyway）
 
 建表和改表由后端 **Flyway** 自动管理，源码在 `src/main/resources/db/migration/`：
