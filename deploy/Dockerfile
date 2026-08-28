@@ -1,5 +1,6 @@
 # ---------- 构建层：Maven 编译（依赖层缓存，改代码不重下依赖） ----------
-FROM maven:3.9-eclipse-temurin-17 AS build
+# 钉在构建机原生架构：jar 与平台无关，多架构发布（amd64/arm64）时无需在 QEMU 里编译
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 COPY deploy/maven-settings.xml /root/.m2/settings.xml
 COPY pom.xml .
