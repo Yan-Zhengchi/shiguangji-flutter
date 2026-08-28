@@ -13,7 +13,7 @@
 
     <groupId>com.shiguangji</groupId>
     <artifactId>shiguangji-server</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>shiguangji-server</name>
     <description>食光记后端服务</description>
 

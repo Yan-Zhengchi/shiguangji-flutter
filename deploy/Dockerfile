@@ -11,9 +11,11 @@ RUN mvn -q clean package -DskipTests
 FROM eclipse-temurin:17-jre-jammy
 LABEL app="shiguangji-server"
 
-# 时区（与 MySQL/日志对齐东八区）+ curl（容器健康检查用）
+# 时区（与 MySQL/日志对齐东八区）+ curl（容器健康检查用）。
+# apt 源换阿里云 https 镜像：官方源是明文 http，在本机代理（Fake-IP）环境下会被 502 拦截
 ENV TZ=Asia/Shanghai
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && sed -i 's|http://ports.ubuntu.com/ubuntu-ports|https://mirrors.aliyun.com/ubuntu-ports|g; s|http://archive.ubuntu.com/ubuntu|https://mirrors.aliyun.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://mirrors.aliyun.com/ubuntu|g' /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
