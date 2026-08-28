@@ -102,6 +102,16 @@ curl http://localhost:8080/actuator/health
 └── logs/                # 应用日志
 ```
 
+## 数据库变更（Flyway）
+
+建表和改表由后端 **Flyway** 自动管理，源码在 `src/main/resources/db/migration/`：
+
+- **应用每次启动时**自动执行未应用的版本脚本（先迁移、后对外服务），NAS 上 `docker compose pull && docker compose up -d` 即完成表结构升级，无需手工 ALTER
+- 已执行记录存在 MySQL 的 `flyway_schema_history` 表里
+- **开发者改表姿势**：新增 `V<下一个版本号>__描述.sql`（如 `V2__add_recipe_tag.sql`），只增不改历史文件；SQL 用"先加后删"（本版加字段，下版再删），保证与任意旧版本兼容
+- 已有部署升级：首次启动自动打基线（当前结构视为 V1，跳过 V1）；全新部署：空库从 V1 全量建表 + 种子数据
+- **升级前先备份**：`sh backup.sh`（迁移是单向的，出问题靠备份 + 回退上一版镜像）
+
 ## 常用命令
 
 ```bash

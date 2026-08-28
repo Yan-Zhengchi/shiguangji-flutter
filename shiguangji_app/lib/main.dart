@@ -15,7 +15,20 @@ Future<void> main() async {
   ));
   await TokenStore.instance.init();   // 启动时加载持久化的 Token + 服务器地址
   ApiClient.init();                   // 按已存的服务器地址构造 dio
-  ApiClient.onAuthFailed = () => appRouter.go('/login');   // 注入 401 失效跳转
+  // 双地址自动选路（异步探测，不阻塞首帧）：局域网优先，
+  // 探测发现该换路时静默切换；请求失败时拦截器还会再做故障转移兜底
+  ApiClient.selectActive();
+  // 从后台回到前台时重新选路：人在外走公网，回家打开 App 即自动切回局域网
+  AppLifecycleListener(onResume: () => ApiClient.selectActive());
+  ApiClient.onAuthFailed = (reason) {   // 注入登录态失效跳转（401 刷新失败 / 连不上服务器）
+    // 登录页带 reason（展示提示）与 from（重登后回跳来源页）
+    final current = appRouter.routeInformationProvider.value.uri.toString();
+    final params = <String, String>{
+      'reason': reason == AuthFailureReason.serverUnreachable ? 'server' : 'auth',
+      if (current.isNotEmpty && !current.startsWith('/login')) 'from': current,
+    };
+    appRouter.go('/login?${Uri(queryParameters: params).query}');
+  };
   runApp(const ProviderScope(child: ShiguangjiApp()));
 }
 

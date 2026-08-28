@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/image_compress.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../data/providers.dart';
 import '../../shared/models.dart';
@@ -59,7 +61,20 @@ class _EditPageState extends ConsumerState<EditPage> {
     if (x == null) return;
     setState(() => _loading = true);
     try {
-      final form = FormData.fromMap({'file': await MultipartFile.fromFile(x.path, filename: x.name)});
+      // 先压到 ≤500KB（JPEG）再上传；压缩失败提示后传原图（后端 Thumbnailator 兜底）
+      final raw = await x.readAsBytes();
+      final img = await ImageCompressor.compress(raw, x.name);
+      if (img.failed && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('图片压缩失败，将上传原图'),
+          duration: Duration(seconds: 2),
+        ));
+      }
+      final form = FormData.fromMap({
+        'file': MultipartFile.fromBytes(img.data,
+            filename: img.fileName,
+            contentType: MediaType('image', ImageCompressor.mediaSubtype(img.fileName))),
+      });
       final r = await ApiClient.dio.post('uploads/image', data: form);
       final m = r.data as Map;
       if (m['code'] == 0) {
@@ -103,8 +118,12 @@ class _EditPageState extends ConsumerState<EditPage> {
       } else {
         await repo.update(widget.recipeId!, body);
       }
-      ref.invalidate(homeFeedProvider((categoryId: null, page: 1)));
+      // 全家族失效：新菜谱在首页、各分类页、搜索结果、热门榜都要出现
+      ref.invalidate(homeFeedProvider);
       ref.invalidate(hotProvider);
+      ref.invalidate(searchProvider);
+      ref.invalidate(userRecipesProvider);   // 个人页「我的菜谱」
+      ref.invalidate(profileProvider);       // 个人页「菜谱」统计数
       if (widget.recipeId != null) ref.invalidate(detailProvider(widget.recipeId!));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

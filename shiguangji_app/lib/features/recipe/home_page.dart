@@ -33,9 +33,9 @@ class HomePage extends ConsumerWidget {
                 ],
               ),
             ),
-            // 搜索框（点击跳搜索页）
+            // 搜索框（点击跳搜索页）；底部 40 = 与分类行、分类行与瀑布流的统一间距
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
               child: GestureDetector(
                 onTap: () => context.push('/search'),
                 child: GlassCard(
@@ -52,11 +52,14 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
             ),
-            // 分类入口（玻璃图标 + 文字）
-            cats.when(
-              data: (list) => CategoryNavRow(categories: list),
-              loading: () => const SizedBox(height: 98),
-              error: (_, __) => const SizedBox.shrink(),
+            // 分类入口（玻璃图标 + 文字）；底部间距与上方搜索框一致
+            Padding(
+              padding: const EdgeInsets.only(bottom: 40),
+              child: cats.when(
+                data: (list) => CategoryNavRow(categories: list),
+                loading: () => const SizedBox(height: 98),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
             ),
             // 瀑布流
             Expanded(
@@ -67,7 +70,11 @@ class HomePage extends ConsumerWidget {
                         color: AppColors.primary,
                         backgroundColor: AppColors.glassFill,
                         onRefresh: () async => ref.refresh(homeFeedProvider((categoryId: null, page: 1)).future),
-                        child: RecipeWaterfall(recipes: list),
+                        // 顶部内边距归零：分类行与瀑布流的实际间距就是上面统一的 40
+                        child: RecipeWaterfall(
+                          recipes: list,
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                        ),
                       ),
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
                 error: (e, _) => _errorState(e, () => ref.invalidate(homeFeedProvider((categoryId: null, page: 1)))),

@@ -20,9 +20,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _p = TextEditingController();
   bool _register = false;
   final _nick = TextEditingController();
-  // 服务器地址：默认填充已存地址或平台默认地址（web→同源代理，真机→本机后端）
-  final _server = TextEditingController(
-      text: TokenStore.instance.serverUrl ?? ApiClient.defaultServerUrl);
+  // 双地址：默认填充已存的局域网/公网地址；都没有时局域网填平台默认地址（web→同源代理，真机→本机后端）
+  final _lan = TextEditingController(text: TokenStore.instance.lanUrl ?? ApiClient.defaultServerUrl);
+  final _pub = TextEditingController(text: TokenStore.instance.pubUrl ?? '');
   bool _loading = false;
   String? _error;
 
@@ -31,15 +31,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _u.dispose();
     _p.dispose();
     _nick.dispose();
-    _server.dispose();
+    _lan.dispose();
+    _pub.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    final server = _server.text.trim();
+    final lan = _lan.text.trim();
+    final pub = _pub.text.trim();
     final u = _u.text.trim(), p = _p.text;
-    if (server.isEmpty) {
-      setState(() => _error = '请输入服务器地址');
+    if (lan.isEmpty && pub.isEmpty) {
+      setState(() => _error = '请至少填写一个服务器地址');
       return;
     }
     if (u.isEmpty || p.isEmpty) {
@@ -48,8 +50,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
     setState(() { _loading = true; _error = null; });
     try {
-      // 先切换后端地址（更新 dio baseUrl + 持久化），再发登录请求
-      await ApiClient.setServerUrl(server);
+      // 保存双地址并探测选路（家里通局域网/外面通公网），再发登录请求
+      await TokenStore.instance.setAddresses(lan: lan, pub: pub);
+      await ApiClient.selectActive();
       final auth = ref.read(authRepoProvider);
       TokenVO t;
       if (_register) {
@@ -80,6 +83,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 被动踢回登录页的原因（连不上服务器 / 登录过期），据此展示提示横幅
+    final kickReason = GoRouterState.of(context).uri.queryParameters['reason'];
     return GradientBackground(
       child: SafeArea(
         child: SingleChildScrollView(
@@ -105,22 +110,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ),
+              if (kickReason != null) ...[
+                const SizedBox(height: 20),
+                _KickBanner(reason: kickReason),
+              ],
               const SizedBox(height: 36),
-              // 服务器地址（连接到 NAS 后端）
+              // 局域网地址（家里 WiFi 直连 NAS）
               TextField(
-                controller: _server,
+                controller: _lan,
                 keyboardType: TextInputType.url,
                 autocorrect: false,
                 decoration: const InputDecoration(
-                  hintText: '服务器地址（如 https://nas.com:6535）',
-                  prefixIcon: Icon(Icons.dns_outlined, color: AppColors.text2),
+                  hintText: '局域网地址（如 http://192.168.1.111:8080）',
+                  prefixIcon: Icon(Icons.wifi_rounded, color: AppColors.text2),
+                ),
+                style: const TextStyle(color: AppColors.text1, fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              // 公网地址（出门在外走公网访问）
+              TextField(
+                controller: _pub,
+                keyboardType: TextInputType.url,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  hintText: '公网地址（如 https://nas.com:6535，选填）',
+                  prefixIcon: Icon(Icons.public_rounded, color: AppColors.text2),
                 ),
                 style: const TextStyle(color: AppColors.text1, fontSize: 14),
               ),
               const SizedBox(height: 4),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('后端独立跑在 NAS 上，登录时连接',
+                child: Text('两个都填时自动选择能连通的那个，回家走局域网、出门走公网',
                     style: TextStyle(fontSize: 10, color: AppColors.text2)),
               ),
               const SizedBox(height: 12),
@@ -171,6 +192,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 被动踢回登录页的原因提示横幅（server=连不上服务器 / auth=登录过期）
+class _KickBanner extends StatelessWidget {
+  const _KickBanner({required this.reason});
+  final String reason;
+
+  @override
+  Widget build(BuildContext context) {
+    final serverDown = reason == 'server';
+    return GlassCard(
+      radius: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      blur: false,
+      child: Row(
+        children: [
+          Icon(serverDown ? Icons.cloud_off_rounded : Icons.hourglass_bottom_rounded,
+              size: 18, color: serverDown ? AppColors.heart : AppColors.orange),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              serverDown
+                  ? '无法连接服务器，请在下方修改服务器地址后重新登录'
+                  : '登录已过期，请重新登录',
+              style: const TextStyle(fontSize: 12, color: AppColors.text1, height: 1.35),
+            ),
+          ),
+        ],
       ),
     );
   }

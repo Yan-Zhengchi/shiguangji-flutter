@@ -409,6 +409,12 @@ class _FavoriteFAB extends ConsumerWidget {
         }
         ref.invalidate(detailProvider(recipeId));
         ref.invalidate(favoritesProvider);
+        // 收藏数同时出现在瀑布流/热门/搜索结果/我的菜谱的卡片上和个人页统计里，一并失效刷新
+        ref.invalidate(homeFeedProvider);
+        ref.invalidate(hotProvider);
+        ref.invalidate(searchProvider);
+        ref.invalidate(userRecipesProvider);
+        ref.invalidate(profileProvider);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),

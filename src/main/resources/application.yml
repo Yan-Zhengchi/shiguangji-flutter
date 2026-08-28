@@ -26,6 +26,13 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # 已有库（历史部署的 NAS）首次升级时自动打基线：当前结构视为 V1，
+    # 跳过 V1 直接应用 V2+；空库全新安装则从 V1 全量执行
+    baseline-on-migrate: true
+    baseline-version: 1
 
 mybatis-plus:
   configuration:

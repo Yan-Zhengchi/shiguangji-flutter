@@ -1,8 +1,8 @@
--- 食光记 MySQL 全量 DDL（首次启动自动执行）
--- 指定客户端字符集，确保 .sql 文件中的中文按 UTF-8 读入（避免种子数据乱码）
+-- V1: 食光记全量建表 + 基础数据（由 deploy/mysql/init.sql 迁移而来）
+-- 空库全新安装时执行；已有库由 Flyway baseline 跳过（见 application.yml）
+-- 库与字符集由 MySQL 容器 MYSQL_DATABASE / JDBC URL 决定，这里不再 CREATE DATABASE/USE
+-- 指定客户端字符集，确保种子数据中文按 UTF-8 读入
 SET NAMES utf8mb4;
-CREATE DATABASE IF NOT EXISTS shiguangji DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE shiguangji;
 
 CREATE TABLE `user` (
   id            BIGINT PRIMARY KEY,
